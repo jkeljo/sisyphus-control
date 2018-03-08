@@ -173,7 +173,16 @@ incomplete) list of possible values:
             {"value": str(value).lower()})
 
     async def refresh(self) -> None:
-        self._data = await self._transport.post("state")
+        result = await self._transport.post("state")
+        if isinstance(result, list):
+            for data in result:
+                data_type = data["type"]
+                if data_type == "sisbot":
+                    self._data = data
+                elif data_type == "playlist":
+                    self.get_playlist_by_id(data["id"])._data = data
+        else:
+            self._data = result
 
 
 # noinspection PyBroadException
