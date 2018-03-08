@@ -82,11 +82,11 @@ incomplete) list of possible values:
 
     async def pause(self):
         if self.state != 'paused':
-            self._data = await self._transport.post("pause")
+            self._try_update_table_state(await self._transport.post("pause"))
 
     async def play(self):
         if self.state != 'playing':
-            self._data = await self._transport.post("play")
+            self._try_update_table_state(await self._transport.post("play"))
 
     @property
     def playlists(self) -> List[Playlist]:
@@ -137,9 +137,11 @@ incomplete) list of possible values:
     async def set_brightness(self, level: float):
         if not 0 <= level <= 1.0:
             raise ValueError("Brightness must be between 0 and 1 inclusive")
-        self._data["brightness"] = await self._transport.post(
+        result = await self._transport.post(
             "set_brightness",
             {"value": level})
+        if not self._try_update_table_state(result):
+            self._data["brightness"] = result
 
     @property
     def speed(self) -> float:
@@ -148,9 +150,11 @@ incomplete) list of possible values:
     async def set_speed(self, speed: float):
         if not 0 <= speed <= 1.0:
             raise ValueError("Speed must be between 0 and 1 inclusive")
-        self._data["speed"] = await self._transport.post(
+        result = await self._transport.post(
             "set_speed",
             {"value": speed})
+        if not self._try_update_table_state(result):
+            self._data["speed"] = result
 
     @property
     def is_shuffle(self) -> bool:
@@ -168,21 +172,30 @@ incomplete) list of possible values:
         return bool(self._data["is_loop"])
 
     async def set_loop(self, value: bool) -> None:
-        self._data["is_loop"] = await self._transport.post(
+        result = await self._transport.post(
             "set_loop",
             {"value": str(value).lower()})
+        if not self._try_update_table_state(result):
+            self._data["is_loop"] = result
 
     async def refresh(self) -> None:
-        result = await self._transport.post("state")
-        if isinstance(result, list):
-            for data in result:
+        self._try_update_table_state(await self._transport.post("state"))
+
+    def _try_update_table_state(self, table_result):
+        if isinstance(table_result, dict):
+            self._data = table_result
+        elif isinstance(table_result, list):
+            for data in table_result:
                 data_type = data["type"]
                 if data_type == "sisbot":
                     self._data = data
                 elif data_type == "playlist":
                     self.get_playlist_by_id(data["id"])._data = data
         else:
-            self._data = result
+            return False
+
+        return True
+
 
 
 # noinspection PyBroadException
