@@ -90,6 +90,19 @@ incomplete) list of possible values:
             self._try_update_table_state(await self._transport.post("play"))
 
     @property
+    def is_sleeping(self):
+        return bool(self._data["is_sleeping"])
+
+    async def sleep(self):
+        if not self.is_sleeping:
+            self._try_update_table_state(await self._transport.post("sleep_sisbot"))
+
+    async def wakeup(self):
+        if self.is_sleeping:
+            self._try_update_table_state(await self._transport.post("wake_sisbot"))
+
+
+    @property
     def playlists(self) -> List[Playlist]:
         return self._playlists
 
