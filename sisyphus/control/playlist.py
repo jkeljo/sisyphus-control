@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 
 from .track import Track
 from .transport import TableTransport
+from .sisbot_json import bool
 
 
 class Playlist:

@@ -3,6 +3,7 @@ from typing import List, Optional, Type, TypeVar
 import asyncio
 
 from .playlist import Playlist
+from .sisbot_json import bool
 from .track import Track
 from .transport import TableTransport, post
 
