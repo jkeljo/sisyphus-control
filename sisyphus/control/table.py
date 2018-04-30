@@ -66,6 +66,15 @@ class Table:
             playlist.id: playlist for playlist in self._playlists}
         self._tracks_by_id = {
             track.id: track for track in self._tracks}
+    async def close(self):
+        return await self._transport.close()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+        return False
 
     @property
     def state(self) -> str:
