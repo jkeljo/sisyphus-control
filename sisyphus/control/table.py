@@ -249,6 +249,18 @@ incomplete) list of possible values:
         else:
             return False
 
+        playlist_ids = list(self._playlists_by_id.keys())
+        for playlist_id in playlist_ids:
+            if playlist_id not in self._data["playlist_ids"]:
+                del self._playlists_by_id[playlist_id]
+                should_notify_listeners = True
+
+        track_ids = list(self._tracks_by_id.keys())
+        for track_id in track_ids:
+            if track_id not in self._data["track_ids"]:
+                del self._tracks_by_id[track_id]
+                should_notify_listeners = True
+
         if should_notify_listeners:
             self._notify_listeners()
 

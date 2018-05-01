@@ -18,14 +18,6 @@ will be created for that playlist -- one for each table that has it loaded."""
         self.parent = table
         self._transport = transport
         self._data = data
-        self._tracks_by_index = [
-            Track(
-                self,
-                self._transport,
-                track_data)
-            for track_data in self._data["tracks"]]
-        self._tracks_by_id = {
-            track.id: track for track in self._tracks_by_index}
 
     def __str__(self) -> str:
         return "{name} v{version} ({num_tracks} tracks)".format(
@@ -44,14 +36,14 @@ will be created for that playlist -- one for each table that has it loaded."""
     @property
     def tracks(self) -> List[Track]:
         return [
-            self._tracks_by_index[index]
+            self._get_track_by_index(index)
             for index in self._data["sorted_tracks"]]
 
     def get_tracks_named(self, name: str) -> List[Track]:
         return [track for track in self.tracks if track.name == name]
 
-    def get_track_by_id(self, track_id: int) -> Track:
-        return self._tracks_by_id[track_id]
+    def _get_track_by_index(self, index: int) -> Track:
+        return Track(self, self._transport, self._data["tracks"][index])
 
     @property
     def is_loop(self) -> bool:
