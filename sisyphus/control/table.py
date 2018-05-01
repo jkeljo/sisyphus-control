@@ -51,21 +51,10 @@ class Table:
         self._data = None
         self._playlists = []
         self._tracks = []
+        self._playlists_by_id = {}
+        self._tracks_by_id = {}
+        self._try_update_table_state(connect_result)
 
-        for data in connect_result:
-            data_type = data["type"]
-            if data_type == "sisbot":
-                assert self._data is None
-                self._data = data
-            elif data_type == "playlist":
-                self._playlists.append(Playlist(self, self._transport, data))
-            elif data_type == "track":
-                self._tracks.append(Track(self, self._transport, data))
-
-        self._playlists_by_id = {
-            playlist.id: playlist for playlist in self._playlists}
-        self._tracks_by_id = {
-            track.id: track for track in self._tracks}
     async def close(self):
         return await self._transport.close()
 
@@ -210,10 +199,23 @@ incomplete) list of possible values:
         elif isinstance(table_result, list):
             for data in table_result:
                 data_type = data["type"]
+                id = data["id"]
                 if data_type == "sisbot":
                     self._data = data
                 elif data_type == "playlist":
-                    self.get_playlist_by_id(data["id"])._data = data
+                    if id in self._playlists_by_id:
+                        self.get_playlist_by_id(id)._data = data
+                    else:
+                        new_playlist = Playlist(self, self._transport, data)
+                        self._playlists.append(new_playlist)
+                        self._playlists_by_id[id] = new_playlist
+                elif data_type == "track":
+                    if id in self._tracks_by_id:
+                        self.get_track_by_id(id)._data = data
+                    else:
+                        new_track = Track(self, self._transport, data)
+                        self._tracks.append(new_track)
+                        self._tracks_by_id[id] = new_track
         else:
             return False
 
