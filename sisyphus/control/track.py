@@ -43,3 +43,6 @@ This track's index in the owning playlist when the playlist is not shuffled"""
             await self.parent.play()
         else:
             await self.parent.play(self)
+
+    def _set_data(self, data):
+        self._data = data

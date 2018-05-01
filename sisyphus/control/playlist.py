@@ -105,6 +105,9 @@ will be created for that playlist -- one for each table that has it loaded."""
         await self._transport.post("set_playlist", self._data)
         await self.parent.play()
 
+    def _set_data(self, data):
+        self._data = data
+
 
 def _parse_date(date_str):
     return datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")

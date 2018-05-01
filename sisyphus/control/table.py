@@ -208,14 +208,14 @@ incomplete) list of possible values:
                     self._data = data
                 elif data_type == "playlist":
                     if id in self._playlists_by_id:
-                        self.get_playlist_by_id(id)._data = data
+                        self.get_playlist_by_id(id)._set_data(data)
                     else:
                         new_playlist = Playlist(self, self._transport, data)
                         self._playlists.append(new_playlist)
                         self._playlists_by_id[id] = new_playlist
                 elif data_type == "track":
                     if id in self._tracks_by_id:
-                        self.get_track_by_id(id)._data = data
+                        self.get_track_by_id(id)._set_data(data)
                     else:
                         new_track = Track(self, self._transport, data)
                         self._tracks.append(new_track)
