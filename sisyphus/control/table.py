@@ -212,6 +212,10 @@ incomplete) list of possible values:
             table_result = table_result[0]
 
         if isinstance(table_result, dict):
+            if self._data == table_result:
+                # Debounce; the table tends to send a lot of events
+                return True
+
             self._data = table_result
             should_notify_listeners = True
         elif isinstance(table_result, list):
@@ -219,6 +223,9 @@ incomplete) list of possible values:
                 data_type = data["type"]
                 id = data["id"]
                 if data_type == "sisbot":
+                    if self._data == data:
+                        # Debounce; the table tends to send a lot of events
+                        continue
                     self._data = data
                     should_notify_listeners = True
                 elif data_type == "playlist":

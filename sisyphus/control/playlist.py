@@ -107,6 +107,7 @@ will be created for that playlist -- one for each table that has it loaded."""
 
     def _set_data(self, data) -> bool:
         if self._data == data:
+            # Debounce; the table tends to send a lot of events
             return False
         self._data = data
         return True

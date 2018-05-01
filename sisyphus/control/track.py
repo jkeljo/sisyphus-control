@@ -46,6 +46,7 @@ This track's index in the owning playlist when the playlist is not shuffled"""
 
     def _set_data(self, data) -> bool:
         if self._data == data:
+            # Debounce; the table tends to send a lot of events
             return False
         self._data = data
         return True
