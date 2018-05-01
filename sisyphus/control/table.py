@@ -51,8 +51,6 @@ class Table:
     def __init__(self):
         self._transport = None
         self._data = None
-        self._playlists = []
-        self._tracks = []
         self._playlists_by_id = {}
         self._tracks_by_id = {}
         self._listeners = []
@@ -104,19 +102,23 @@ incomplete) list of possible values:
 
     @property
     def playlists(self) -> List[Playlist]:
-        return self._playlists
+        return [
+            self.get_playlist_by_id(playlist_id)
+            for playlist_id in self._data["playlist_ids"]]
 
     def get_playlists_named(self, name: str) -> List[Playlist]:
         return [
             playlist
             for playlist in self.playlists if playlist.name == name]
 
-    def get_playlist_by_id(self, playlist_id: int) -> Playlist:
+    def get_playlist_by_id(self, playlist_id: str) -> Playlist:
         return self._playlists_by_id[playlist_id]
 
     @property
     def tracks(self) -> List[Track]:
-        return self._tracks
+        return [
+            self.get_track_by_id(track_id)
+            for track_id in self._data["track_ids"]]
 
     def get_tracks_named(self, name: str) -> List[Track]:
         return [track for track in self.tracks if track.name == name]
@@ -234,7 +236,6 @@ incomplete) list of possible values:
                             should_notify_listeners = True
                     else:
                         new_playlist = Playlist(self, self._transport, data)
-                        self._playlists.append(new_playlist)
                         self._playlists_by_id[id] = new_playlist
                         should_notify_listeners = True
                 elif data_type == "track":
@@ -243,7 +244,6 @@ incomplete) list of possible values:
                             should_notify_listeners = True
                     else:
                         new_track = Track(self, self._transport, data)
-                        self._tracks.append(new_track)
                         self._tracks_by_id[id] = new_track
                         should_notify_listeners = True
         else:
