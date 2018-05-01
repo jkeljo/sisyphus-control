@@ -55,6 +55,7 @@ class Table:
         self._tracks = []
         self._playlists_by_id = {}
         self._tracks_by_id = {}
+        self._listeners = []
 
     async def close(self):
         return await self._transport.close()
@@ -194,34 +195,55 @@ incomplete) list of possible values:
     async def refresh(self) -> None:
         self._try_update_table_state(await self._transport.post("state"))
 
+    def add_listener(self, listener):
+        self._listeners.append(listener)
+
+    def remove_listener(self, listener):
+        self._listeners.remove(listener)
+
+    def _notify_listeners(self):
+        listeners = list(self._listeners)
+        for listener in listeners:
+            listener()
+
     def _try_update_table_state(self, table_result):
+        should_notify_listeners = False
         if isinstance(table_result, tuple):
             table_result = table_result[0]
 
         if isinstance(table_result, dict):
             self._data = table_result
+            should_notify_listeners = True
         elif isinstance(table_result, list):
             for data in table_result:
                 data_type = data["type"]
                 id = data["id"]
                 if data_type == "sisbot":
                     self._data = data
+                    should_notify_listeners = True
                 elif data_type == "playlist":
                     if id in self._playlists_by_id:
-                        self.get_playlist_by_id(id)._set_data(data)
+                        if self.get_playlist_by_id(id)._set_data(data):
+                            should_notify_listeners = True
                     else:
                         new_playlist = Playlist(self, self._transport, data)
                         self._playlists.append(new_playlist)
                         self._playlists_by_id[id] = new_playlist
+                        should_notify_listeners = True
                 elif data_type == "track":
                     if id in self._tracks_by_id:
-                        self.get_track_by_id(id)._set_data(data)
+                        if self.get_track_by_id(id)._set_data(data):
+                            should_notify_listeners = True
                     else:
                         new_track = Track(self, self._transport, data)
                         self._tracks.append(new_track)
                         self._tracks_by_id[id] = new_track
+                        should_notify_listeners = True
         else:
             return False
+
+        if should_notify_listeners:
+            self._notify_listeners()
 
         return True
 

@@ -105,8 +105,11 @@ will be created for that playlist -- one for each table that has it loaded."""
         await self._transport.post("set_playlist", self._data)
         await self.parent.play()
 
-    def _set_data(self, data):
+    def _set_data(self, data) -> bool:
+        if self._data == data:
+            return False
         self._data = data
+        return True
 
 
 def _parse_date(date_str):
