@@ -42,18 +42,19 @@ class Table:
     async def connect(cls: Type[TableType], ip: str) -> TableType:
         """Connect to the table with the given IP and return a Table object
         that can be used to control it"""
-        transport = TableTransport(ip)
-        connect_result = await transport.post("connect")
-        return Table(transport, connect_result)
+        table = Table()
+        table._transport = TableTransport(ip, table._try_update_table_state)
+        connect_result = await table._transport.post("connect")
+        table._try_update_table_state(connect_result)
+        return table
 
-    def __init__(self, transport: TableTransport, connect_result):
-        self._transport = transport
+    def __init__(self):
+        self._transport = None
         self._data = None
         self._playlists = []
         self._tracks = []
         self._playlists_by_id = {}
         self._tracks_by_id = {}
-        self._try_update_table_state(connect_result)
 
     async def close(self):
         return await self._transport.close()
@@ -194,6 +195,9 @@ incomplete) list of possible values:
         self._try_update_table_state(await self._transport.post("state"))
 
     def _try_update_table_state(self, table_result):
+        if isinstance(table_result, tuple):
+            table_result = table_result[0]
+
         if isinstance(table_result, dict):
             self._data = table_result
         elif isinstance(table_result, list):
