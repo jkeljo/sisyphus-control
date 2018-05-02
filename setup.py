@@ -21,7 +21,7 @@ setup(
         "Intended Audience :: Developers",
         "Topic :: Home Automation",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.5",
     ],
     keywords="sisyphus",
     packages=["sisyphus/control"],
@@ -29,5 +29,5 @@ setup(
         "aiohttp",
         "netifaces",
     ],
-    python_requires="~=3.6",
+    python_requires="~=3.5",
 )
