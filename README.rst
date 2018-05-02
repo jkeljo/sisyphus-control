@@ -26,7 +26,14 @@ mask is ``255.255.255.0``::
 
 Once you know the IP address, connect to the table::
 
-  table = await Table.connect(ip_addr)
+  async with await Table.connect(ip_addr) as Table:
+    # Do stuff here
+
+Change notifications
+====================
+Register for state change notifications::
+
+  table.add_listener(my_listener)
 
 Basic controls
 ==============
@@ -58,4 +65,3 @@ The following features would be reasonable to include; I'll happily accept pull 
 * Track thumbnail rendering
 * Table administration (wifi settings, etc.)
 * Interactions with Sisyphus cloud
-* Status polling/notificationslay the
