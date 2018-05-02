@@ -1,5 +1,6 @@
 from typing import Any, Dict
 
+from .log import log_data_change
 
 class Track:
     """Represents a track in the context of a Playlist or Table.
@@ -45,6 +46,7 @@ This track's index in the owning playlist when the playlist is not shuffled"""
             await self.parent.play(self)
 
     def _set_data(self, data) -> bool:
+        log_data_change(self._data, data)
         if self._data == data:
             # Debounce; the table tends to send a lot of events
             return False

@@ -2,6 +2,7 @@ from typing import List, Optional, Type, TypeVar
 
 import asyncio
 
+from .log import log_data_change
 from .playlist import Playlist
 from .sisbot_json import bool
 from .track import Track
@@ -221,6 +222,7 @@ incomplete) list of possible values:
                 data_type = data["type"]
                 id = data["id"]
                 if data_type == "sisbot":
+                    log_data_change(self._data, data)
                     if self._data == data:
                         # Debounce; the table tends to send a lot of events
                         continue
@@ -231,6 +233,7 @@ incomplete) list of possible values:
                         if self.get_playlist_by_id(id)._set_data(data):
                             should_notify_listeners = True
                     else:
+                        log_data_change(None, data)
                         new_playlist = Playlist(self, self._transport, data)
                         self._playlists_by_id[id] = new_playlist
                         should_notify_listeners = True
@@ -239,6 +242,7 @@ incomplete) list of possible values:
                         if self.get_track_by_id(id)._set_data(data):
                             should_notify_listeners = True
                     else:
+                        log_data_change(None, data)
                         new_track = Track(self, self._transport, data)
                         self._tracks_by_id[id] = new_track
                         should_notify_listeners = True

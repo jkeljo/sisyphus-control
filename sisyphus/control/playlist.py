@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from .log import log_data_change
 from .track import Track
 from .transport import TableTransport
 from .sisbot_json import bool
@@ -98,6 +99,7 @@ will be created for that playlist -- one for each table that has it loaded."""
         await self.parent.play()
 
     def _set_data(self, data) -> bool:
+        log_data_change(self._data, data)
         if self._data == data:
             # Debounce; the table tends to send a lot of events
             return False
