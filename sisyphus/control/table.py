@@ -214,13 +214,9 @@ incomplete) list of possible values:
             table_result = table_result[0]
 
         if isinstance(table_result, dict):
-            if self._data == table_result:
-                # Debounce; the table tends to send a lot of events
-                return True
+            table_result = [table_result]
 
-            self._data = table_result
-            should_notify_listeners = True
-        elif isinstance(table_result, list):
+        if isinstance(table_result, list):
             for data in table_result:
                 data_type = data["type"]
                 id = data["id"]
