@@ -4,6 +4,13 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[1.0.1] - 2018-05-03
+====================
+
+Added
+-----
+* Missing dependency in `setup.py`
+
 [1.0.0] - 2018-05-01
 ====================
 
