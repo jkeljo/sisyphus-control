@@ -1,3 +1,4 @@
+from enum import IntEnum
 from typing import Any, Dict
 
 from .log import log_data_change
@@ -11,6 +12,12 @@ is the appropriate Table object.
 Every track in a playlist is represented by a Track object whose parent is the
 Playlist. If a given track appears multiple times in the playlist, each
 occurrence is represented by its own Track object."""
+    class ThumbnailSize(IntEnum):
+        SMALL = 50
+        MEDIUM = 100
+        LARGE = 400
+
+
     def __init__(self, parent, transport, data: Dict[str, Any]):
         self.parent = parent
         self._transport = transport
@@ -44,6 +51,12 @@ This track's index in the owning playlist when the playlist is not shuffled"""
             await self.parent.play()
         else:
             await self.parent.play(self)
+
+    def get_thumbnail_url(self, size):
+        return "http://{host}:3001/thumbnail/{size}/{id}".format(
+            host = self._transport.ip,
+            size = size,
+            id = self.id)
 
     def _set_data(self, data) -> bool:
         log_data_change(self._data, data)

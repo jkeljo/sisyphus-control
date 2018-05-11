@@ -22,6 +22,10 @@ class TableTransport:
         await self.close()
         return False
 
+    @property
+    def ip(self):
+        return self._ip
+
     async def close(self):
         if self._socket_closed:
             self._wants_to_close = True
