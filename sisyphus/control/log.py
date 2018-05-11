@@ -4,8 +4,6 @@ import difflib
 import logging
 
 logger = logging.getLogger("sisyphus-control")
-logger.setLevel(logging.DEBUG)
-logging.basicConfig()
 
 def log_data_change(old: Dict[str, any], new: Dict[str, any]) -> None:
     if old == None:
