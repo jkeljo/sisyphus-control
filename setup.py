@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name="sisyphus-control",
-    version="1.1.0",
+    version="1.1.1",
     description="Control your Sisyphus kinetic art tables "
                 "(sisyphus-industries.com)",
     long_description=long_description,

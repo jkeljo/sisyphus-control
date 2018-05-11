@@ -4,7 +4,14 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
-[1.1.0] - 2018-05-06
+[1.1.1] - 2018-05-10
+====================
+
+Changed
+-------
+Updated requirements to newer versions and pruned unnecessary ones.
+
+[1.1.0] - 2018-05-10
 ====================
 
 Added
