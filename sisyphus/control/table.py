@@ -141,11 +141,7 @@ incomplete) list of possible values:
         if self.active_playlist:
             owner = self.active_playlist
 
-        active_track_id = self._data["active_track"]["id"]
-        if active_track_id == "false":
-            return None
-
-        return owner.get_track_by_id(active_track_id)
+        return Track(owner, self._transport, self._data["active_track"])
 
     @property
     def brightness(self) -> float:
