@@ -67,6 +67,10 @@ class Table:
         return False
 
     @property
+    def name(self) -> str:
+        return self._data["name"]
+
+    @property
     def state(self) -> str:
         """
 Returns the current state of the table. The following is a (possibly
