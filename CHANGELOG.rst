@@ -4,12 +4,28 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[1.1.0] - 2018-05-06
+====================
+
+Added
+-----
+* ``name`` property on ``Table``
+* ``get_thumbnail_url`` method on ``Track``
+
+Changed
+-------
+* ``Table.active_track`` works now
+
+Removed
+-------
+* Don't force a particular logging config
+
 [1.0.1] - 2018-05-03
 ====================
 
 Added
 -----
-* Missing dependency in `setup.py`
+* Missing dependency in ``setup.py``
 
 [1.0.0] - 2018-05-01
 ====================
