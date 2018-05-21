@@ -4,6 +4,14 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[2.0] - 2018-05-20
+====================
+
+Changed
+-------
+* Changed the package name from ``sisyphus.control`` to ``sisyphus_control`` so as to be more ecosystem-friendly
+
+
 [1.1.1] - 2018-05-10
 ====================
 
