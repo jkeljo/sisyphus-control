@@ -24,7 +24,7 @@ setup(
         "Programming Language :: Python :: 3.5",
     ],
     keywords="sisyphus",
-    packages=["sisyphus/control"],
+    packages=["sisyphus_control"],
     install_requires=[
         "aiohttp",
         "netifaces",

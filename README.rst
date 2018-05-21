@@ -20,7 +20,7 @@ Finding tables on your network
 To find the IP addresses of all tables on your local network. This is a very naive search; it assumes your subnet
 mask is ``255.255.255.0``::
 
-  from sisyphus.control import Table
+  from sisyphus_control import Table
 
   ip_addrs = await Table.find_table_ips()
 
