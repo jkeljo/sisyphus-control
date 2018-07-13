@@ -92,8 +92,10 @@ async def post(
 
         form_data = {"data": json.dumps(json_data)}
 
-        async with session.post(url, data=form_data,
-                                timeout=timeout) as r:
+        async with session.post(
+                url,
+                data=form_data,
+                timeout=aiohttp.ClientTimeout(sock_connect=timeout)) as r:
             r = await r.json()
             if r["err"]:
                 raise Exception(r["error"])
