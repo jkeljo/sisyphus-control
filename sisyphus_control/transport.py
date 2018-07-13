@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from socketIO_client_nexus import SocketIO, SocketIONamespace
 
 import aiohttp
@@ -6,7 +6,12 @@ import asyncio
 import json
 
 class TableTransport:
-    def __init__(self, ip, callback = None):
+    def __init__(
+            self,
+            ip,
+            callback = None,
+            session: Optional[aiohttp.ClientSession] = None):
+        self._session = session
         self._ip = ip
         self._callback = callback
         self._wants_to_close = False
@@ -36,7 +41,12 @@ class TableTransport:
             endpoint: str,
             data: Dict[str, Any] = None,
             timeout: float = 5):
-        return await post(self._ip, endpoint, data, timeout)
+        return await post(
+            self._ip,
+            endpoint,
+            data,
+            timeout,
+            session=self._session)
 
     def _run_socket(self):
         transport = self
@@ -64,7 +74,13 @@ async def post(
         ip: str,
         endpoint: str,
         data: Dict[str, Any] = None,
-        timeout: float = 5):
+        timeout: float = 5,
+        session: Optional[aiohttp.ClientSession] = None):
+
+    if not session:
+        async with aiohttp.ClientSession() as session:
+            return await post(ip, endpoint, data, timeout, session)
+
     data = data or {}
     try:
         url = "http://{ip}/sisbot/{endpoint}".format(ip=ip,
@@ -76,13 +92,12 @@ async def post(
 
         form_data = {"data": json.dumps(json_data)}
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, data=form_data,
-                                    timeout=timeout) as r:
-                r = await r.json()
-                if r["err"]:
-                    raise Exception(r["error"])
+        async with session.post(url, data=form_data,
+                                timeout=timeout) as r:
+            r = await r.json()
+            if r["err"]:
+                raise Exception(r["error"])
 
-                return r["resp"]
+            return r["resp"]
     except:
         raise

@@ -2,6 +2,8 @@ from typing import List, Optional, Type, TypeVar
 
 import asyncio
 
+import aiohttp
+
 from .log import log_data_change
 from .playlist import Playlist
 from .sisbot_json import bool
@@ -15,7 +17,9 @@ TableType = TypeVar('Table', bound='Table')
 class Table:
     """Represents one Sisyphus table on the local network."""
     @classmethod
-    async def find_table_ips(cls: Type[TableType]) -> List[str]:
+    async def find_table_ips(
+            cls: Type[TableType],
+            session: Optional[aiohttp.ClientSession] = None) -> List[str]:
         import netifaces
 
         for iface in netifaces.interfaces():
@@ -35,16 +39,24 @@ class Table:
                 for i in range(1, 256):
                     table_addr = root + str(i)
                     if table_addr != local_addr and table_addr != broadcast:
-                        pings.append(asyncio.Task(_ping_table(table_addr)))
+                        pings.append(
+                            asyncio.Task(
+                                _ping_table(table_addr, session=session)))
 
                 return [ip for ip in await asyncio.gather(*pings) if ip]
 
     @classmethod
-    async def connect(cls: Type[TableType], ip: str) -> TableType:
+    async def connect(
+            cls: Type[TableType],
+            ip: str,
+            session: Optional[aiohttp.ClientSession] = None) -> TableType:
         """Connect to the table with the given IP and return a Table object
         that can be used to control it"""
         table = Table()
-        table._transport = TableTransport(ip, table._try_update_table_state)
+        table._transport = TableTransport(
+            ip,
+            callback=table._try_update_table_state,
+            session=session)
         connect_result = await table._transport.post("connect")
         table._try_update_table_state(connect_result)
         return table
@@ -269,9 +281,15 @@ incomplete) list of possible values:
 
 
 # noinspection PyBroadException
-async def _ping_table(ip) -> Optional[str]:
+async def _ping_table(
+        ip,
+        session: Optional[aiohttp.ClientSession] = None) -> Optional[str]:
     try:
-        await post(ip, "exists", timeout=1.25)
+        await post(
+            ip,
+            "exists",
+            session=session,
+            timeout=1.25)
         return ip
     except Exception as e:
         return None
