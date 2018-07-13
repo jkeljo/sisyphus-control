@@ -4,13 +4,26 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[2.1] - 2018-07-12
+====================
+
+Added
+-----
+* You can now pass in your own ``aiohttp.ClientSession``
+* Added some more log statements
+
+Changed
+-------
+* Callbacks on the Table object may be coroutines or normal functions
+* Timeouts are now properly treated as socket connect timeouts instead of total time timeouts
+* SocketIO socket properly closed on exception
+
 [2.0] - 2018-05-20
 ====================
 
 Changed
 -------
 * Changed the package name from ``sisyphus.control`` to ``sisyphus_control`` so as to be more ecosystem-friendly
-
 
 [1.1.1] - 2018-05-10
 ====================
