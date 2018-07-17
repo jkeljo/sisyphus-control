@@ -67,7 +67,9 @@ class TableTransport:
 
     def _on_set(self, *args):
         if self._callback:
-            self._event_loop.call_soon(self._callback, *args)
+            asyncio.run_coroutine_threadsafe(
+                asyncio.coroutine(self._callback)(*args),
+                self._event_loop).result()
 
 
 async def post(

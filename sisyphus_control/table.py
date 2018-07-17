@@ -58,7 +58,7 @@ class Table:
             callback=table._try_update_table_state,
             session=session)
         connect_result = await table._transport.post("connect")
-        table._try_update_table_state(connect_result)
+        await table._try_update_table_state(connect_result)
         return table
 
     def __init__(self):
@@ -98,11 +98,13 @@ incomplete) list of possible values:
 
     async def pause(self):
         if self.state != 'paused':
-            self._try_update_table_state(await self._transport.post("pause"))
+            await self._try_update_table_state(
+                await self._transport.post("pause"))
 
     async def play(self):
         if self.state != 'playing':
-            self._try_update_table_state(await self._transport.post("play"))
+            await self._try_update_table_state(
+                await self._transport.post("play"))
 
     @property
     def is_sleeping(self):
@@ -110,11 +112,13 @@ incomplete) list of possible values:
 
     async def sleep(self):
         if not self.is_sleeping:
-            self._try_update_table_state(await self._transport.post("sleep_sisbot"))
+            await self._try_update_table_state(
+                await self._transport.post("sleep_sisbot"))
 
     async def wakeup(self):
         if self.is_sleeping:
-            self._try_update_table_state(await self._transport.post("wake_sisbot"))
+            await self._try_update_table_state(
+                await self._transport.post("wake_sisbot"))
 
 
     @property
@@ -169,7 +173,7 @@ incomplete) list of possible values:
         result = await self._transport.post(
             "set_brightness",
             {"value": level})
-        if not self._try_update_table_state(result):
+        if not await self._try_update_table_state(result):
             self._data["brightness"] = result
 
     @property
@@ -182,7 +186,7 @@ incomplete) list of possible values:
         result = await self._transport.post(
             "set_speed",
             {"value": speed})
-        if not self._try_update_table_state(result):
+        if not await self._try_update_table_state(result):
             self._data["speed"] = result
 
     @property
@@ -204,11 +208,11 @@ incomplete) list of possible values:
         result = await self._transport.post(
             "set_loop",
             {"value": str(value).lower()})
-        if not self._try_update_table_state(result):
+        if not await self._try_update_table_state(result):
             self._data["is_loop"] = result
 
     async def refresh(self) -> None:
-        self._try_update_table_state(await self._transport.post("state"))
+        await self._try_update_table_state(await self._transport.post("state"))
 
     def add_listener(self, listener):
         self._listeners.append(listener)
@@ -216,12 +220,12 @@ incomplete) list of possible values:
     def remove_listener(self, listener):
         self._listeners.remove(listener)
 
-    def _notify_listeners(self):
+    async def _notify_listeners(self):
         listeners = list(self._listeners)
         for listener in listeners:
-            listener()
+            await asyncio.coroutine(listener)()
 
-    def _try_update_table_state(self, table_result):
+    async def _try_update_table_state(self, table_result):
         should_notify_listeners = False
         if isinstance(table_result, tuple):
             table_result = table_result[0]
@@ -274,7 +278,7 @@ incomplete) list of possible values:
                 should_notify_listeners = True
 
         if should_notify_listeners:
-            self._notify_listeners()
+            await self._notify_listeners()
 
         return True
 

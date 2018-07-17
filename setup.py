@@ -30,5 +30,5 @@ setup(
         "netifaces",
         "socketIO-client-nexus",
     ],
-    python_requires="~=3.5",
+    python_requires=">=3.5.1",
 )
