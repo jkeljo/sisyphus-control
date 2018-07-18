@@ -1,6 +1,7 @@
 from typing import List, Optional, Type, TypeVar
 
 import asyncio
+import logging
 
 import aiohttp
 
@@ -13,6 +14,8 @@ from .transport import TableTransport, post
 
 TableType = TypeVar('Table', bound='Table')
 
+logger = logging.getLogger("sisyphus-control")
+
 
 class Table:
     """Represents one Sisyphus table on the local network."""
@@ -20,6 +23,7 @@ class Table:
     async def find_table_ips(
             cls: Type[TableType],
             session: Optional[aiohttp.ClientSession] = None) -> List[str]:
+        logger.info("Searching for tables...")
         import netifaces
 
         for iface in netifaces.interfaces():
@@ -34,6 +38,7 @@ class Table:
 
                 broadcast = ifaddress["broadcast"]
 
+                logger.debug("Searching for tables on interface %s", local_addr)
                 root = local_addr[:local_addr.rindex('.') + 1]
                 pings = []
                 for i in range(1, 256):
@@ -43,7 +48,10 @@ class Table:
                             asyncio.Task(
                                 _ping_table(table_addr, session=session)))
 
-                return [ip for ip in await asyncio.gather(*pings) if ip]
+                result = [ip for ip in await asyncio.gather(*pings) if ip]
+                if not result:
+                    logger.info("No tables found.")
+                return result
 
     @classmethod
     async def connect(
@@ -59,6 +67,8 @@ class Table:
             session=session)
         connect_result = await table._transport.post("connect")
         await table._try_update_table_state(connect_result)
+
+        logger.debug("Connected to %s (%s)", table.name, ip)
         return table
 
     def __init__(self):
@@ -69,7 +79,12 @@ class Table:
         self._listeners = []
 
     async def close(self):
-        return await self._transport.close()
+        result = await self._transport.close()
+        logger.info(
+            "Closed connection to %s (%s)",
+            self.name,
+            self._transport.ip)
+        return result
 
     async def __aenter__(self):
         return self
@@ -294,6 +309,8 @@ async def _ping_table(
             "exists",
             session=session,
             timeout=1.25)
+        logger.info("Found a table at %s", ip)
         return ip
     except Exception as e:
+        logger.debug("%s: %s", ip, e)
         return None
