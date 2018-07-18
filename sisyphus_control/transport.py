@@ -54,16 +54,13 @@ class TableTransport:
             def on_set(self, *args):
                 transport._on_set(args)
 
-        socket = SocketIO(
+        with SocketIO(
             self._ip,
             3002,
             SisyphusNamespace,
-            transports=['websocket'])
-
-        while not self._wants_to_close:
-            socket.wait(seconds=1)
-
-        socket.disconnect()
+            transports=['websocket']) as socket:
+            while not self._wants_to_close:
+                socket.wait(seconds=1)
 
     def _on_set(self, *args):
         if self._callback:
