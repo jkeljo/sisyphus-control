@@ -5,7 +5,7 @@
 Control your `Sisyphus Kinetic Art Table <https://www.sisyphus-industries.com>`_
 from Python 3.6 with ``asyncio``!
 
-This initial release is mainly targeting the functionality needed for basic integrations with home automation systems:
+This initial release is mainly targeting the functionality needed for basic integrations with home automation systems such as `Home Assistant <https://www.home-assistant.io/components/sisyphus/>`_:
 
 * Status queries (playing/paused/current playlist/current/track/brightness/speed)
 * Play controls (play/pause/shuffle/loop/set playlist/set track)
