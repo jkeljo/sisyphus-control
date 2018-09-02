@@ -2,7 +2,7 @@
 ``sisyphus-control``
 ====================
 
-Control your `Sisyphus Kinetic Art Table <https://www.sisyphus-industries.com>`
+Control your `Sisyphus Kinetic Art Table <https://www.sisyphus-industries.com>`_
 from Python 3.6 with ``asyncio``!
 
 This initial release is mainly targeting the functionality needed for basic integrations with home automation systems:
