@@ -4,6 +4,13 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[2.2] - 2019-03-27
+==================
+Added
+-----
+* Property for getting the table's UUID
+* Handling of intermittent connections
+
 [2.1] - 2018-07-12
 ====================
 
