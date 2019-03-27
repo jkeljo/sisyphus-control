@@ -77,6 +77,7 @@ class Table:
         self._playlists_by_id = {}
         self._tracks_by_id = {}
         self._listeners = []
+        self._connected = False
 
     async def close(self):
         result = await self._transport.close()
@@ -92,6 +93,14 @@ class Table:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
         return False
+
+    @property
+    def is_connected(self) -> bool:
+        return self._connected
+
+    @property
+    def id(self) -> str:
+        return self._data["id"]
 
     @property
     def name(self) -> str:
@@ -249,6 +258,7 @@ incomplete) list of possible values:
             table_result = [table_result]
 
         if isinstance(table_result, list):
+            self._connected = True
             for data in table_result:
                 data_type = data["type"]
                 id = data["id"]
@@ -277,6 +287,9 @@ incomplete) list of possible values:
                         new_track = Track(self, self._transport, data)
                         self._tracks_by_id[id] = new_track
                         should_notify_listeners = True
+        elif table_result is None:
+            self._connected = False
+            should_notify_listeners = True
         else:
             return False
 

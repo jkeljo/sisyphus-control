@@ -51,6 +51,9 @@ class TableTransport:
     def _run_socket(self):
         transport = self
         class SisyphusNamespace(SocketIONamespace):
+            def on_disconnect(self):
+                transport._on_disconnect()
+
             def on_set(self, *args):
                 transport._on_set(args)
 
@@ -60,12 +63,23 @@ class TableTransport:
             SisyphusNamespace,
             transports=['websocket']) as socket:
             while not self._wants_to_close:
-                socket.wait(seconds=1)
+                try:
+                    socket.wait(seconds=1)
+                except IndexError as e:
+                    # IndexError can happen on disconnects; eat it so that
+                    # SocketIO can reconnect
+                    pass
 
     def _on_set(self, *args):
         if self._callback:
             asyncio.run_coroutine_threadsafe(
                 asyncio.coroutine(self._callback)(*args),
+                self._event_loop).result()
+
+    def _on_disconnect(self):
+        if self._callback:
+            asyncio.run_coroutine_threadsafe(
+                asyncio.coroutine(self._callback)(None),
                 self._event_loop).result()
 
 
