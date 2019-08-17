@@ -71,13 +71,13 @@ class TableTransport:
                     pass
 
     def _on_set(self, *args):
-        if self._callback:
+        if self._callback and self._event_loop.is_running():
             asyncio.run_coroutine_threadsafe(
                 asyncio.coroutine(self._callback)(*args),
                 self._event_loop).result()
 
     def _on_disconnect(self):
-        if self._callback:
+        if self._callback and self._event_loop.is_running():
             asyncio.run_coroutine_threadsafe(
                 asyncio.coroutine(self._callback)(None),
                 self._event_loop).result()
