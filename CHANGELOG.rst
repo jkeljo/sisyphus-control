@@ -4,6 +4,12 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[2.2.1] - 2019-08-17
+====================
+Fixed
+-----
+* Fixed a crash when closing the socket coincides with shutting down the event loop
+
 [2.2] - 2019-03-27
 ==================
 Added
