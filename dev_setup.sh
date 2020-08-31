@@ -2,6 +2,7 @@
 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
-virtualenv -p python3.5 --prompt '(sisyphus-control) ' venv
-source venv/bin/activate
-pip3 install -r requirements.txt
+pyenv virtualenv 3.7.1 sisyphus-control
+pyenv local sisyphus-control
+pip install --upgrade pip
+pip install -r requirements.txt
