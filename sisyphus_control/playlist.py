@@ -11,6 +11,7 @@ class Playlist:
     """Represents a playlist in the context of a table. If working with
 multiple tables that have the same playlist loaded, multiple Playlist objects
 will be created for that playlist -- one for each table that has it loaded."""
+
     def __init__(
             self,
             table,

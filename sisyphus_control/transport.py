@@ -5,11 +5,12 @@ import aiohttp
 import asyncio
 import json
 
+
 class TableTransport:
     def __init__(
             self,
             ip,
-            callback = None,
+            callback=None,
             session: Optional[aiohttp.ClientSession] = None):
         self._session = session
         self._ip = ip
@@ -50,6 +51,7 @@ class TableTransport:
 
     def _run_socket(self):
         transport = self
+
         class SisyphusNamespace(SocketIONamespace):
             def on_disconnect(self):
                 transport._on_disconnect()
@@ -58,10 +60,10 @@ class TableTransport:
                 transport._on_set(args)
 
         with SocketIO(
-            self._ip,
-            3002,
-            SisyphusNamespace,
-            transports=['websocket']) as socket:
+                self._ip,
+                3002,
+                SisyphusNamespace,
+                transports=['websocket']) as socket:
             while not self._wants_to_close:
                 try:
                     socket.wait(seconds=1)

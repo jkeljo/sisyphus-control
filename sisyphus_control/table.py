@@ -38,7 +38,8 @@ class Table:
 
                 broadcast = ifaddress["broadcast"]
 
-                logger.debug("Searching for tables on interface %s", local_addr)
+                logger.debug(
+                    "Searching for tables on interface %s", local_addr)
                 root = local_addr[:local_addr.rindex('.') + 1]
                 pings = []
                 for i in range(1, 256):
@@ -143,7 +144,6 @@ incomplete) list of possible values:
         if self.is_sleeping:
             await self._try_update_table_state(
                 await self._transport.post("wake_sisbot"))
-
 
     @property
     def playlists(self) -> List[Playlist]:
@@ -309,7 +309,6 @@ incomplete) list of possible values:
             await self._notify_listeners()
 
         return True
-
 
 
 # noinspection PyBroadException

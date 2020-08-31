@@ -3,6 +3,7 @@ from typing import Any, Dict
 
 from .log import log_data_change
 
+
 class Track:
     """Represents a track in the context of a Playlist or Table.
 
@@ -16,7 +17,6 @@ occurrence is represented by its own Track object."""
         SMALL = 50
         MEDIUM = 100
         LARGE = 400
-
 
     def __init__(self, parent, transport, data: Dict[str, Any]):
         self.parent = parent
@@ -54,9 +54,9 @@ This track's index in the owning playlist when the playlist is not shuffled"""
 
     def get_thumbnail_url(self, size):
         return "http://{host}:3001/thumbnail/{size}/{id}".format(
-            host = self._transport.ip,
-            size = size,
-            id = self.id)
+            host=self._transport.ip,
+            size=size,
+            id=self.id)
 
     def _set_data(self, data) -> bool:
         log_data_change(self._data, data)
