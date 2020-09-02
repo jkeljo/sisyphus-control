@@ -4,6 +4,18 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[3.0] - 2020-09-06
+==================
+Added
+-----
+* Track remaining/total time support (requires recent firmware)
+* Test shell program
+Changed
+-------
+* Reworked the data model to match how Sisyphus itself does it. This fixes crashes that were occurring working with tables that have the latest firmware, but may break things with older firmwares.
+* Switched to `python-socketio` for Socket.IO support, as it is more actively maintained than `SocketIO-client-nexus`.
+* Switched to VSCode for development
+
 [2.2.1] - 2019-08-17
 ====================
 Fixed
