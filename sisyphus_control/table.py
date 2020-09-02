@@ -5,6 +5,7 @@ import logging
 
 import aiohttp
 
+from .data import Collection, Model
 from .log import log_data_change
 from .playlist import Playlist
 from .sisbot_json import bool
@@ -74,11 +75,12 @@ class Table:
 
     def __init__(self):
         self._transport = None
+        self._collection = Collection()
         self._data = None
-        self._playlists_by_id = {}
-        self._tracks_by_id = {}
         self._listeners = []
+        self._updated = asyncio.Event()
         self._connected = False
+        self._collection.add_listener(self._notify_listeners)
 
     async def close(self):
         result = await self._transport.close()
@@ -94,6 +96,10 @@ class Table:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
         return False
+
+    @property
+    def data(self):
+        return self._data
 
     @property
     def is_connected(self) -> bool:
@@ -156,8 +162,11 @@ incomplete) list of possible values:
             playlist
             for playlist in self.playlists if playlist.name == name]
 
-    def get_playlist_by_id(self, playlist_id: str) -> Playlist:
-        return self._playlists_by_id[playlist_id]
+    def get_playlist_by_id(self, playlist_id: str) -> Optional[Playlist]:
+        model = self._collection.get(playlist_id)
+        if model["type"] != "playlist":
+            return None
+        return Playlist(self, self._transport, model)
 
     @property
     def tracks(self) -> List[Track]:
@@ -169,7 +178,10 @@ incomplete) list of possible values:
         return [track for track in self.tracks if track.name == name]
 
     def get_track_by_id(self, track_id: int) -> Track:
-        return self._tracks_by_id[track_id]
+        model = self._collection.get(track_id)
+        if model["type"] != "track":
+            return None
+        return Track(self, self._transport, model)
 
     @property
     def active_playlist(self) -> Optional[Playlist]:
@@ -238,6 +250,13 @@ incomplete) list of possible values:
     async def refresh(self) -> None:
         await self._try_update_table_state(await self._transport.post("state"))
 
+    async def wait_for(self, pred):
+        while True:
+            await self._updated.wait()
+            self._updated.clear()
+            if pred():
+                return
+
     def add_listener(self, listener):
         self._listeners.append(listener)
 
@@ -248,9 +267,9 @@ incomplete) list of possible values:
         listeners = list(self._listeners)
         for listener in listeners:
             await asyncio.coroutine(listener)()
+        self._updated.set()
 
     async def _try_update_table_state(self, table_result):
-        should_notify_listeners = False
         if isinstance(table_result, tuple):
             table_result = table_result[0]
 
@@ -260,53 +279,20 @@ incomplete) list of possible values:
         if isinstance(table_result, list):
             self._connected = True
             for data in table_result:
-                data_type = data["type"]
-                id = data["id"]
-                if data_type == "sisbot":
-                    log_data_change(self._data, data)
-                    if self._data == data:
-                        # Debounce; the table tends to send a lot of events
-                        continue
+                if "id" in data:
+                    id = data["id"]
+                    await self._collection.add(Model(data))
+                    data = self._collection.get(id)
+                else:
+                    continue
+
+                if self._data is None and data["type"] == "sisbot":
                     self._data = data
-                    should_notify_listeners = True
-                elif data_type == "playlist":
-                    if id in self._playlists_by_id:
-                        if self.get_playlist_by_id(id)._set_data(data):
-                            should_notify_listeners = True
-                    else:
-                        log_data_change(None, data)
-                        new_playlist = Playlist(self, self._transport, data)
-                        self._playlists_by_id[id] = new_playlist
-                        should_notify_listeners = True
-                elif data_type == "track":
-                    if id in self._tracks_by_id:
-                        if self.get_track_by_id(id)._set_data(data):
-                            should_notify_listeners = True
-                    else:
-                        log_data_change(None, data)
-                        new_track = Track(self, self._transport, data)
-                        self._tracks_by_id[id] = new_track
-                        should_notify_listeners = True
         elif table_result is None:
             self._connected = False
-            should_notify_listeners = True
+            await self._notify_listeners()
         else:
             return False
-
-        playlist_ids = list(self._playlists_by_id.keys())
-        for playlist_id in playlist_ids:
-            if playlist_id not in self._data["playlist_ids"]:
-                del self._playlists_by_id[playlist_id]
-                should_notify_listeners = True
-
-        track_ids = list(self._tracks_by_id.keys())
-        for track_id in track_ids:
-            if track_id not in self._data["track_ids"]:
-                del self._tracks_by_id[track_id]
-                should_notify_listeners = True
-
-        if should_notify_listeners:
-            await self._notify_listeners()
 
         return True
 

@@ -87,7 +87,7 @@ will be created for that playlist -- one for each table that has it loaded."""
         index = self._data["active_track_index"]
         if index < 0:
             return None
-        return self._tracks_by_index[index]
+        return self._get_track_by_index(index)
 
     async def play(self, track: Optional[Track] = None) -> None:
         if track:
@@ -96,7 +96,7 @@ will be created for that playlist -- one for each table that has it loaded."""
 
             self._data["active_track_index"] = track.index_in_playlist
             self._data["active_track_id"] = track.id
-        await self._transport.post("set_playlist", self._data)
+        await self._transport.post("set_playlist", self._data.data)
         await self.parent.play()
 
     def _set_data(self, data) -> bool:

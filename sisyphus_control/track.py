@@ -47,7 +47,7 @@ This track's index in the owning playlist when the playlist is not shuffled"""
 
     async def play(self):
         if not self.is_in_playlist:
-            await self._transport.post("set_track", self._data)
+            await self._transport.post("set_track", self._data.data)
             await self.parent.play()
         else:
             await self.parent.play(self)
