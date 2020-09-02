@@ -48,6 +48,10 @@ class SisyphusShell(cmd.Cmd):
             elif track:
                 prompt.write("Track: {name}\n".format(name=track.name))
 
+            if self._table.active_track_remaining_time_as_of:
+                prompt.write("Time remaining: {remaining} (of {total}) (as of {as_of})\n".format(
+                    remaining=self._table.active_track_remaining_time, total=self._table.active_track_total_time, as_of=self._table.active_track_remaining_time_as_of))
+
             prompt.write("Speed: {speed}\n".format(speed=self._table.speed))
             prompt.write("Brightness: {brightness}\n".format(
                 brightness=self._table.brightness))
@@ -72,6 +76,10 @@ class SisyphusShell(cmd.Cmd):
     def postcmd(self, stop, *args):
         self._running_cmd = False
         return stop
+
+    def emptyline(self):
+        if self._table:
+            self._async_do(self._table.refresh())
 
     def do_EOF(self, *args):
         return True

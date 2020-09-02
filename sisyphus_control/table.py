@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Type, TypeVar
 
 import asyncio
@@ -79,6 +80,9 @@ class Table:
         self._data = None
         self._listeners = []
         self._updated = asyncio.Event()
+        self._remaining_time = 0
+        self._total_time = 0
+        self._remaining_time_as_of = None
         self._connected = False
         self._collection.add_listener(self._notify_listeners)
 
@@ -247,8 +251,21 @@ incomplete) list of possible values:
         if not await self._try_update_table_state(result):
             self._data["is_loop"] = result
 
+    @property
+    def active_track_total_time(self) -> timedelta:
+        return self._total_time
+
+    @property
+    def active_track_remaining_time(self) -> timedelta:
+        return self._remaining_time
+
+    @property
+    def active_track_remaining_time_as_of(self) -> Optional[datetime]:
+        return self._remaining_time_as_of
+
     async def refresh(self) -> None:
         await self._try_update_table_state(await self._transport.post("state"))
+        await self._try_update_table_state(await self._transport.post("get_track_time"))
 
     async def wait_for(self, pred):
         while True:
@@ -283,6 +300,13 @@ incomplete) list of possible values:
                     id = data["id"]
                     await self._collection.add(Model(data))
                     data = self._collection.get(id)
+                elif "remaining_time" in data:
+                    self._remaining_time = timedelta(
+                        milliseconds=data["remaining_time"])
+                    self._total_time = timedelta(
+                        milliseconds=data["total_time"])
+                    self._remaining_time_as_of = datetime.now(timezone.utc)
+                    await self._notify_listeners()
                 else:
                     continue
 
