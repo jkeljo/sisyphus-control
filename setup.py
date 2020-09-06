@@ -28,7 +28,7 @@ setup(
     install_requires=[
         "aiohttp",
         "netifaces",
-        "socketIO-client-nexus",
+        "python-socketio",
     ],
     python_requires=">=3.7.1",
 )

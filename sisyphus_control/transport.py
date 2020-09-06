@@ -1,9 +1,9 @@
 from typing import Any, Dict, Optional
-from socketIO_client_nexus import SocketIO, SocketIONamespace
 
 import aiohttp
 import asyncio
 import json
+import socketio
 
 
 class TableTransport:
@@ -17,9 +17,7 @@ class TableTransport:
         self._callback = callback
         self._wants_to_close = False
         self._event_loop = asyncio.get_event_loop()
-        self._socket_closed = self._event_loop.run_in_executor(
-            None,
-            lambda: self._run_socket())
+        self._socket_closed = self._event_loop.create_task(self._run_socket())
 
     async def __aenter__(self):
         return self
@@ -49,40 +47,24 @@ class TableTransport:
             timeout,
             session=self._session)
 
-    def _run_socket(self):
-        transport = self
+    async def _run_socket(self):
+        sio = socketio.AsyncClient()
 
-        class SisyphusNamespace(SocketIONamespace):
-            def on_disconnect(self):
-                transport._on_disconnect()
+        @sio.event
+        async def disconnect():
+            await self._callback(None)
 
-            def on_set(self, *args):
-                transport._on_set(args)
+        @sio.event
+        async def set(*args):
+            await self._callback(args)
 
-        with SocketIO(
-                self._ip,
-                3002,
-                SisyphusNamespace,
-                transports=['websocket']) as socket:
-            while not self._wants_to_close:
-                try:
-                    socket.wait(seconds=1)
-                except IndexError as e:
-                    # IndexError can happen on disconnects; eat it so that
-                    # SocketIO can reconnect
-                    pass
+        await sio.connect("http://{ip}:{port}".format(ip=self._ip, port=3002))
 
-    def _on_set(self, *args):
-        if self._callback and self._event_loop.is_running():
-            asyncio.run_coroutine_threadsafe(
-                asyncio.coroutine(self._callback)(*args),
-                self._event_loop).result()
+        while not self._wants_to_close:
+            await sio.sleep(1)
 
-    def _on_disconnect(self):
-        if self._callback and self._event_loop.is_running():
-            asyncio.run_coroutine_threadsafe(
-                asyncio.coroutine(self._callback)(None),
-                self._event_loop).result()
+        await sio.disconnect()
+        await sio.wait()
 
 
 async def post(
