@@ -1,7 +1,9 @@
 from enum import IntEnum
 from typing import Any, Dict
 
+from . import table
 from .log import log_data_change
+from .transport import TableTransport
 
 
 class Track:
@@ -18,7 +20,7 @@ occurrence is represented by its own Track object."""
         MEDIUM = 100
         LARGE = 400
 
-    def __init__(self, parent, transport, data: Dict[str, Any]):
+    def __init__(self, parent: 'table.Table', transport: TableTransport, data: Dict[str, Any]):
         self.parent = parent
         self._transport = transport
         self._data = data
@@ -27,7 +29,7 @@ occurrence is represented by its own Track object."""
         return self.name
 
     @property
-    def id(self):
+    def id(self) -> str:
         """UUID of the track design, not of the Track instance."""
         return self._data["id"]
 
@@ -45,20 +47,20 @@ occurrence is represented by its own Track object."""
 This track's index in the owning playlist when the playlist is not shuffled"""
         return self._data["_index"]
 
-    async def play(self):
+    async def play(self) -> None:
         if not self.is_in_playlist:
-            await self._transport.post("set_track", self._data.data)
+            await self._transport.post("set_track", self._data)
             await self.parent.play()
         else:
             await self.parent.play(self)
 
-    def get_thumbnail_url(self, size):
+    def get_thumbnail_url(self, size: int) -> str:
         return "http://{host}:3001/thumbnail/{size}/{id}".format(
             host=self._transport.ip,
             size=size,
             id=self.id)
 
-    def _set_data(self, data) -> bool:
+    def _set_data(self, data: Dict[str, Any]) -> bool:
         log_data_change(self._data, data)
         if self._data == data:
             # Debounce; the table tends to send a lot of events
