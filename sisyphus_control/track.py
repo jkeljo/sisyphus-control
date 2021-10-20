@@ -52,7 +52,7 @@ This track's index in the owning playlist when the playlist is not shuffled"""
 
     async def play(self) -> None:
         if not self.is_in_playlist:
-            await self._transport.post("set_track", self._data)
+            await self._transport.post("set_track", self._data.data)
             await self.parent.play()
         else:
             await self.parent.play(self)
@@ -62,11 +62,3 @@ This track's index in the owning playlist when the playlist is not shuffled"""
             host=self._transport.ip,
             size=size,
             id=self.id)
-
-    def _set_data(self, data: Dict[str, Any]) -> bool:
-        log_data_change(self._data, data)
-        if self._data == data:
-            # Debounce; the table tends to send a lot of events
-            return False
-        self._data = data
-        return True

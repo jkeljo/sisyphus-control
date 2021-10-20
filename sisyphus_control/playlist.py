@@ -104,14 +104,6 @@ will be created for that playlist -- one for each table that has it loaded."""
         await self._transport.post("set_playlist", self._data.data)
         await self.parent.play()
 
-    def _set_data(self, data: Model) -> bool:
-        log_data_change(self._data, data)
-        if self._data == data:
-            # Debounce; the table tends to send a lot of events
-            return False
-        self._data = data
-        return True
-
 
 def _parse_date(date_str: str) -> datetime:
     return datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
