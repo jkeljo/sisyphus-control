@@ -9,7 +9,7 @@ import aiohttp
 from .data import Collection, Model
 from .log import log_data_change
 from .playlist import Playlist
-from .sisbot_json import bool
+from .sisbot_json import parse_bool
 from .track import Track
 from .transport import TableTransport, post
 
@@ -142,8 +142,8 @@ incomplete) list of possible values:
                 await self._transport.post("play"))
 
     @property
-    def is_sleeping(self):
-        return bool(self._data["is_sleeping"])
+    def is_sleeping(self) -> bool:
+        return parse_bool(self._data["is_sleeping"])
 
     async def sleep(self):
         if not self.is_sleeping:
@@ -231,7 +231,7 @@ incomplete) list of possible values:
 
     @property
     def is_shuffle(self) -> bool:
-        return bool(self._data["is_shuffle"])
+        return parse_bool(self._data["is_shuffle"])
 
     async def set_shuffle(self, value: bool):
         if not self.active_playlist:
@@ -242,7 +242,7 @@ incomplete) list of possible values:
 
     @property
     def is_loop(self) -> bool:
-        return bool(self._data["is_loop"])
+        return parse_bool(self._data["is_loop"])
 
     async def set_loop(self, value: bool) -> None:
         result = await self._transport.post(

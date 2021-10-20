@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 from .log import log_data_change
 from .track import Track
 from .transport import TableTransport
-from .sisbot_json import bool
+from .sisbot_json import parse_bool
 
 
 class Playlist:
@@ -49,11 +49,11 @@ will be created for that playlist -- one for each table that has it loaded."""
 
     @property
     def is_loop(self) -> bool:
-        return bool(self._data["is_loop"])
+        return parse_bool(self._data["is_loop"])
 
     @property
     def is_shuffle(self) -> bool:
-        return bool(self._data["is_shuffle"])
+        return parse_bool(self._data["is_shuffle"])
 
     async def set_shuffle(self, value):
         if self.parent.active_playlist != self:
