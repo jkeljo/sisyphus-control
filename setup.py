@@ -25,6 +25,9 @@ setup(
     ],
     keywords="sisyphus",
     packages=["sisyphus_control"],
+    package_data={
+        "sisyphus_control": ["py.typed"]
+    },
     install_requires=[
         "aiohttp",
         "netifaces",
