@@ -24,9 +24,9 @@ occurrence is represented by its own Track object."""
         LARGE = 400
 
     def __init__(self, parent: Union['playlist.Playlist', 'table.Table'], transport: TableTransport, data: Model):
-        self.parent = parent
-        self._transport = transport
-        self._data = data
+        self.parent: Union['playlist.Playlist', 'table.Table'] = parent
+        self._transport: TableTransport = transport
+        self._data: Model = data
 
     def __str__(self) -> str:
         return self.name

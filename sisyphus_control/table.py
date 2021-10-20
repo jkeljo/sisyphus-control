@@ -208,7 +208,7 @@ incomplete) list of possible values:
     def brightness(self) -> float:
         return self._data["brightness"]
 
-    async def set_brightness(self, level: float):
+    async def set_brightness(self, level: float) -> None:
         if not 0 <= level <= 1.0:
             raise ValueError("Brightness must be between 0 and 1 inclusive")
         result = await self._get_transport().post(
@@ -221,7 +221,7 @@ incomplete) list of possible values:
     def speed(self) -> float:
         return self._data["speed"]
 
-    async def set_speed(self, speed: float):
+    async def set_speed(self, speed: float) -> None:
         if not 0 <= speed <= 1.0:
             raise ValueError("Speed must be between 0 and 1 inclusive")
         result = await self._get_transport().post(
@@ -234,7 +234,7 @@ incomplete) list of possible values:
     def is_shuffle(self) -> bool:
         return parse_bool(self._data["is_shuffle"])
 
-    async def set_shuffle(self, value: bool):
+    async def set_shuffle(self, value: bool) -> None:
         if not self.active_playlist:
             raise Exception("Cannot shuffle when there is no active playlist")
 

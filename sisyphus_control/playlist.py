@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, ForwardRef, List, Optional, Type
 
 from . import table
 from .data import Model
@@ -13,6 +13,8 @@ class Playlist:
     """Represents a playlist in the context of a table. If working with
 multiple tables that have the same playlist loaded, multiple Playlist objects
 will be created for that playlist -- one for each table that has it loaded."""
+
+    parent: 'table.Table'
 
     def __init__(
             self,
@@ -57,7 +59,7 @@ will be created for that playlist -- one for each table that has it loaded."""
     def is_shuffle(self) -> bool:
         return parse_bool(self._data["is_shuffle"])
 
-    async def set_shuffle(self, value):
+    async def set_shuffle(self, value: bool) -> None:
         if self.parent.active_playlist != self:
             raise Exception(
                 "set_shuffle may only be called on the active playlist")
