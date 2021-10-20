@@ -11,7 +11,7 @@ class Model(UserDict):
     def __init__(self, data: Dict[str, Any]):
         super().__init__(data)
 
-    async def update_from_changes(self, changes: Dict[str, Any]) -> bool:
+    async def update_from_changes(self, changes: 'Model') -> bool:
         data_changed = False
         for key, value in changes.items():
             if not key in self or self[key] != value:
@@ -21,7 +21,7 @@ class Model(UserDict):
         return data_changed
 
 
-class Collection(UserDict):
+class Collection(UserDict[Union[str, int], Model]):
     """Holds all the data returned by the table, as Model objects keyed by ID."""
 
     def __init__(self):

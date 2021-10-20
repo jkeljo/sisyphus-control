@@ -3,12 +3,14 @@ from typing import Dict, Any
 import difflib
 import logging
 
+from .data import Model
+
 _LOGGER = logging.getLogger("sisyphus-control")
 
 
-def log_data_change(old: Dict[str, Any], new: Dict[str, Any]) -> None:
+def log_data_change(old: Model, new: Model) -> None:
     if old == None:
-        old = {}
+        old = Model({})
 
     diff_lines = [line for line in difflib.unified_diff(
         sorted(["{key} = {value}".format(key=item[0], value=item[1])

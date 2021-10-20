@@ -1,7 +1,10 @@
 from enum import IntEnum
-from typing import Any, Dict
+from typing import Any, Dict, Union
+
+from sisyphus_control.data import Model
 
 from . import table
+from . import playlist
 from .log import log_data_change
 from .transport import TableTransport
 
@@ -20,7 +23,7 @@ occurrence is represented by its own Track object."""
         MEDIUM = 100
         LARGE = 400
 
-    def __init__(self, parent: 'table.Table', transport: TableTransport, data: Dict[str, Any]):
+    def __init__(self, parent: Union['playlist.Playlist', 'table.Table'], transport: TableTransport, data: Model):
         self.parent = parent
         self._transport = transport
         self._data = data

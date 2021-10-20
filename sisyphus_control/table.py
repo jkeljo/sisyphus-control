@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Type, TypeVar
+from types import TracebackType
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Type, TypeVar, Union
 
 import asyncio
 import logging
@@ -14,18 +15,18 @@ from .track import Track
 from .transport import TableTransport, post
 
 
-TableType = TypeVar('Table', bound='Table')
+_LOGGER = logging.getLogger("sisyphus-control")
 
-logger = logging.getLogger("sisyphus-control")
+TableListenerType = Union[Callable[[], None], Callable[[], Awaitable[None]]]
 
 
 class Table:
     """Represents one Sisyphus table on the local network."""
     @classmethod
     async def find_table_ips(
-            cls: Type[TableType],
-            session: Optional[aiohttp.ClientSession] = None) -> List[str]:
-        logger.info("Searching for tables...")
+            cls: Type['Table'],
+            session: Optional[aiohttp.ClientSession] = None) -> Optional[List[str]]:
+        _LOGGER.info("Searching for tables...")
         import netifaces
 
         for iface in netifaces.interfaces():
@@ -40,7 +41,7 @@ class Table:
 
                 broadcast = ifaddress["broadcast"]
 
-                logger.debug(
+                _LOGGER.debug(
                     "Searching for tables on interface %s", local_addr)
                 root = local_addr[:local_addr.rindex('.') + 1]
                 pings = []
@@ -53,14 +54,14 @@ class Table:
 
                 result = [ip for ip in await asyncio.gather(*pings) if ip]
                 if not result:
-                    logger.info("No tables found.")
+                    _LOGGER.info("No tables found.")
                 return result
 
     @classmethod
     async def connect(
-            cls: Type[TableType],
+            cls: Type['Table'],
             ip: str,
-            session: Optional[aiohttp.ClientSession] = None) -> TableType:
+            session: Optional[aiohttp.ClientSession] = None) -> 'Table':
         """Connect to the table with the given IP and return a Table object
         that can be used to control it"""
         table = Table()
@@ -71,38 +72,38 @@ class Table:
         connect_result = await table._transport.post("connect")
         await table._try_update_table_state(connect_result)
 
-        logger.debug("Connected to %s (%s)", table.name, ip)
+        _LOGGER.debug("Connected to %s (%s)", table.name, ip)
         return table
 
     def __init__(self):
-        self._transport = None
-        self._collection = Collection()
-        self._data = None
-        self._listeners = []
-        self._updated = asyncio.Event()
-        self._remaining_time = 0
-        self._total_time = 0
-        self._remaining_time_as_of = None
-        self._connected = False
+        self._transport: Optional[TableTransport] = None
+        self._collection: Collection = Collection()
+        self._data: Model = Model({})
+        self._listeners: List[TableListenerType] = []
+        self._updated: asyncio.Event = asyncio.Event()
+        self._remaining_time: timedelta = timedelta()
+        self._total_time: timedelta = timedelta()
+        self._remaining_time_as_of: Optional[datetime] = None
+        self._connected: bool = False
         self._collection.add_listener(self._notify_listeners)
 
-    async def close(self):
-        result = await self._transport.close()
-        logger.info(
-            "Closed connection to %s (%s)",
-            self.name,
-            self._transport.ip)
-        return result
+    async def close(self) -> None:
+        if self._transport is not None:
+            await self._transport.close()
+            _LOGGER.info(
+                "Closed connection to %s (%s)",
+                self.name,
+                self._transport.ip)
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> 'Table':
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> bool:
         await self.close()
         return False
 
     @property
-    def data(self):
+    def data(self) -> Model:
         return self._data
 
     @property
@@ -131,35 +132,35 @@ incomplete) list of possible values:
 """
         return self._data["state"]
 
-    async def pause(self):
+    async def pause(self) -> None:
         if self.state != 'paused':
             await self._try_update_table_state(
-                await self._transport.post("pause"))
+                await self._get_transport().post("pause"))
 
-    async def play(self):
+    async def play(self) -> None:
         if self.state != 'playing':
             await self._try_update_table_state(
-                await self._transport.post("play"))
+                await self._get_transport().post("play"))
 
     @property
     def is_sleeping(self) -> bool:
         return parse_bool(self._data["is_sleeping"])
 
-    async def sleep(self):
+    async def sleep(self) -> None:
         if not self.is_sleeping:
             await self._try_update_table_state(
-                await self._transport.post("sleep_sisbot"))
+                await self._get_transport().post("sleep_sisbot"))
 
-    async def wakeup(self):
+    async def wakeup(self) -> None:
         if self.is_sleeping:
             await self._try_update_table_state(
-                await self._transport.post("wake_sisbot"))
+                await self._get_transport().post("wake_sisbot"))
 
     @property
     def playlists(self) -> List[Playlist]:
-        return [
+        return list(filter(None, [
             self.get_playlist_by_id(playlist_id)
-            for playlist_id in self._data["playlist_ids"]]
+            for playlist_id in self._data["playlist_ids"]]))
 
     def get_playlists_named(self, name: str) -> List[Playlist]:
         return [
@@ -168,24 +169,24 @@ incomplete) list of possible values:
 
     def get_playlist_by_id(self, playlist_id: str) -> Optional[Playlist]:
         model = self._collection.get(playlist_id)
-        if model["type"] != "playlist":
+        if model is None or model["type"] != "playlist":
             return None
-        return Playlist(self, self._transport, model)
+        return Playlist(self, self._get_transport(), model)
 
     @property
     def tracks(self) -> List[Track]:
-        return [
+        return list(filter(None, [
             self.get_track_by_id(track_id)
-            for track_id in self._data["track_ids"]]
+            for track_id in self._data["track_ids"]]))
 
     def get_tracks_named(self, name: str) -> List[Track]:
         return [track for track in self.tracks if track.name == name]
 
-    def get_track_by_id(self, track_id: int) -> Track:
+    def get_track_by_id(self, track_id: int) -> Optional[Track]:
         model = self._collection.get(track_id)
-        if model["type"] != "track":
+        if model is None or model["type"] != "track":
             return None
-        return Track(self, self._transport, model)
+        return Track(self, self._get_transport(), model)
 
     @property
     def active_playlist(self) -> Optional[Playlist]:
@@ -201,7 +202,7 @@ incomplete) list of possible values:
         if self.active_playlist:
             owner = self.active_playlist
 
-        return Track(owner, self._transport, self._data["active_track"])
+        return Track(owner, self._get_transport(), self._data["active_track"])
 
     @property
     def brightness(self) -> float:
@@ -210,7 +211,7 @@ incomplete) list of possible values:
     async def set_brightness(self, level: float):
         if not 0 <= level <= 1.0:
             raise ValueError("Brightness must be between 0 and 1 inclusive")
-        result = await self._transport.post(
+        result = await self._get_transport().post(
             "set_brightness",
             {"value": level})
         if not await self._try_update_table_state(result):
@@ -223,7 +224,7 @@ incomplete) list of possible values:
     async def set_speed(self, speed: float):
         if not 0 <= speed <= 1.0:
             raise ValueError("Speed must be between 0 and 1 inclusive")
-        result = await self._transport.post(
+        result = await self._get_transport().post(
             "set_speed",
             {"value": speed})
         if not await self._try_update_table_state(result):
@@ -245,7 +246,7 @@ incomplete) list of possible values:
         return parse_bool(self._data["is_loop"])
 
     async def set_loop(self, value: bool) -> None:
-        result = await self._transport.post(
+        result = await self._get_transport().post(
             "set_loop",
             {"value": str(value).lower()})
         if not await self._try_update_table_state(result):
@@ -264,32 +265,35 @@ incomplete) list of possible values:
         return self._remaining_time_as_of
 
     async def refresh(self) -> None:
-        await self._try_update_table_state(await self._transport.post("state"))
-        await self._try_update_table_state(await self._transport.post("get_track_time"))
+        await self._try_update_table_state(await self._get_transport().post("state"))
+        await self._try_update_table_state(await self._get_transport().post("get_track_time"))
 
-    async def wait_for(self, pred):
+    async def wait_for(self, pred: Callable[[], bool]) -> None:
         while True:
             await self._updated.wait()
             self._updated.clear()
             if pred():
                 return
 
-    def add_listener(self, listener):
+    def add_listener(self, listener: TableListenerType) -> None:
         self._listeners.append(listener)
 
-    def remove_listener(self, listener):
+    def remove_listener(self, listener: TableListenerType) -> None:
         self._listeners.remove(listener)
 
-    async def _notify_listeners(self):
+    async def _notify_listeners(self) -> None:
         listeners = list(self._listeners)
         for listener in listeners:
-            await asyncio.coroutine(listener)()
+            await asyncio.coroutine(listener)()  # type: ignore
         self._updated.set()
 
-    async def _try_update_table_state(self, table_result):
-        if isinstance(table_result, tuple):
-            table_result = table_result[0]
+    def _get_transport(self) -> TableTransport:
+        if self._transport is not None:
+            return self._transport
 
+        raise Exception("Table not connected")
+
+    async def _try_update_table_state(self, table_result: Optional[List[Dict[str, Any]]]) -> bool:
         if isinstance(table_result, dict):
             table_result = [table_result]
 
@@ -300,6 +304,9 @@ incomplete) list of possible values:
                     id = data["id"]
                     await self._collection.add(Model(data))
                     data = self._collection.get(id)
+                    assert data is not None
+                    if self._data is None and data["type"] == "sisbot":
+                        self._data = data
                 elif "remaining_time" in data:
                     self._remaining_time = timedelta(
                         milliseconds=data["remaining_time"])
@@ -310,8 +317,6 @@ incomplete) list of possible values:
                 else:
                     continue
 
-                if self._data is None and data["type"] == "sisbot":
-                    self._data = data
         elif table_result is None:
             self._connected = False
             await self._notify_listeners()
@@ -323,7 +328,7 @@ incomplete) list of possible values:
 
 # noinspection PyBroadException
 async def _ping_table(
-        ip,
+        ip: str,
         session: Optional[aiohttp.ClientSession] = None) -> Optional[str]:
     try:
         await post(
@@ -331,8 +336,8 @@ async def _ping_table(
             "exists",
             session=session,
             timeout=1.25)
-        logger.info("Found a table at %s", ip)
+        _LOGGER.info("Found a table at %s", ip)
         return ip
     except Exception as e:
-        logger.debug("%s: %s", ip, e)
+        _LOGGER.debug("%s: %s", ip, e)
         return None
