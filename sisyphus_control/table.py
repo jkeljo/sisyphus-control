@@ -119,6 +119,15 @@ class Table:
         return self._data["name"]
 
     @property
+    def firmware_version(self) -> Optional[str]:
+        # Data also has a "firmware_version", but it appears to always be 1.0
+        return self._data.get("software_version")
+
+    @property
+    def mac_address(self) -> Optional[str]:
+        return self._data.get("mac_address")
+
+    @property
     def state(self) -> str:
         """
 Returns the current state of the table. The following is a (possibly
