@@ -1,6 +1,8 @@
 import asyncio
 from collections import UserDict
-from typing import Any, Dict
+from typing import Any, Awaitable, Callable, Dict, List, Union
+
+CollectionListener = Union[Callable[[], None], Callable[[], Awaitable[None]]]
 
 
 class Model(UserDict):
@@ -9,7 +11,7 @@ class Model(UserDict):
     def __init__(self, data: Dict[str, Any]):
         super().__init__(data)
 
-    async def update_from_changes(self, changes) -> bool:
+    async def update_from_changes(self, changes: Dict[str, Any]) -> bool:
         data_changed = False
         for key, value in changes.items():
             if not key in self or self[key] != value:
@@ -24,9 +26,9 @@ class Collection(UserDict):
 
     def __init__(self):
         super().__init__()
-        self._listeners = []
+        self._listeners: List[CollectionListener] = []
 
-    async def add(self, item: Model):
+    async def add(self, item: Model) -> None:
         id = item.data["id"]
         if id in self:
             should_notify = await self[id].update_from_changes(item)
@@ -37,16 +39,16 @@ class Collection(UserDict):
         if should_notify:
             await self._notify_listeners()
 
-    def add_listener(self, listener):
+    def add_listener(self, listener: CollectionListener) -> None:
         self._listeners.append(listener)
 
-    def remove_listener(self, listener):
+    def remove_listener(self, listener: CollectionListener) -> None:
         self._listeners.remove(listener)
 
-    async def _notify_listeners(self):
+    async def _notify_listeners(self) -> None:
         listeners = list(self._listeners)
         for listener in listeners:
-            await asyncio.coroutine(listener)()
+            await asyncio.coroutine(listener)()  # type: ignore
 
 
 if __name__ == "__main__":
@@ -55,7 +57,7 @@ if __name__ == "__main__":
     from unittest.mock import MagicMock
 
     class CollectionTests(aiounittest.AsyncTestCase):
-        async def test_add(self):
+        async def test_add(self) -> None:
             coll = Collection()
             item = Model({"id": 12345, "key": "value"})
             await coll.add(item)
@@ -63,7 +65,7 @@ if __name__ == "__main__":
 
             self.assertEqual(item, returned)
 
-        async def test_update_does_not_remove_value(self):
+        async def test_update_does_not_remove_value(self) -> None:
             coll = Collection()
             item = Model({"id": 12345, "key": "value"})
             await coll.add(item)
@@ -73,7 +75,7 @@ if __name__ == "__main__":
             returned = coll.get(12345)
             self.assertEqual(returned, item)
 
-        async def test_update_adds_new_keys(self):
+        async def test_update_adds_new_keys(self) -> None:
             coll = Collection()
             item = Model({"id": 12345, "key": "value"})
             await coll.add(item)
@@ -84,7 +86,7 @@ if __name__ == "__main__":
             expected = Model({"id": 12345, "key": "value", "key2": "value2"})
             self.assertEqual(returned, expected)
 
-        async def test_update_changes_values(self):
+        async def test_update_changes_values(self) -> None:
             coll = Collection()
             item = Model({"id": 12345, "key": "value"})
             await coll.add(item)
@@ -94,26 +96,26 @@ if __name__ == "__main__":
             returned = coll.get(12345)
             self.assertEqual(returned, delta)
 
-        async def test_update_notifies_listeners(self):
+        async def test_update_notifies_listeners(self) -> None:
             coll = Collection()
             item = Model({"id": 12345, "key": "value"})
             await coll.add(item)
 
             listener = MagicMock()
-            item.add_listener(listener)
+            coll.add_listener(listener)
 
             delta = Model({"id": 12345, "key": "new_value"})
             await coll.add(delta)
 
             assert listener.called
 
-        async def test_no_op_update_does_not_notify_listeners(self):
+        async def test_no_op_update_does_not_notify_listeners(self) -> None:
             coll = Collection()
             item = Model({"id": 12345, "key": "value"})
             await coll.add(item)
 
             listener = MagicMock()
-            item.add_listener(listener)
+            coll.add_listener(listener)
 
             delta = Model({"id": 12345, "key": "value"})
             await coll.add(delta)
