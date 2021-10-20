@@ -305,7 +305,7 @@ incomplete) list of possible values:
                     await self._collection.add(Model(data))
                     data = self._collection.get(id)
                     assert data is not None
-                    if self._data is None and data["type"] == "sisbot":
+                    if not self._data and data["type"] == "sisbot":
                         self._data = data
                 elif "remaining_time" in data:
                     self._remaining_time = timedelta(

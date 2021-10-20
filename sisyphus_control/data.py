@@ -1,6 +1,6 @@
 import asyncio
 from collections import UserDict
-from typing import Any, Awaitable, Callable, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, List, Union
 
 CollectionListener = Union[Callable[[], None], Callable[[], Awaitable[None]]]
 
@@ -21,7 +21,13 @@ class Model(UserDict):
         return data_changed
 
 
-class Collection(UserDict[Union[str, int], Model]):
+if TYPE_CHECKING:
+    CollectionBase = UserDict[Union[str, int], Model]
+else:
+    CollectionBase = UserDict
+
+
+class Collection(CollectionBase):
     """Holds all the data returned by the table, as Model objects keyed by ID."""
 
     def __init__(self):
