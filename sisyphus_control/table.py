@@ -25,7 +25,7 @@ class Table:
     @classmethod
     async def find_table_ips(
             cls: Type['Table'],
-            session: Optional[aiohttp.ClientSession] = None) -> Optional[List[str]]:
+            session: Optional[aiohttp.ClientSession] = None) -> List[str]:
         _LOGGER.info("Searching for tables...")
         import netifaces
 
@@ -56,6 +56,7 @@ class Table:
                 if not result:
                     _LOGGER.info("No tables found.")
                 return result
+        return []
 
     @classmethod
     async def connect(
