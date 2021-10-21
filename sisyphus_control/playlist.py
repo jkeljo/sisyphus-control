@@ -67,9 +67,8 @@ will be created for that playlist -- one for each table that has it loaded."""
         if value == self.is_shuffle:
             return
 
-        data = await self._transport.post("set_shuffle",
-                                          {"value": str(value).lower()})
-        self._data = Model(data)
+        await self._transport.post("set_shuffle",
+                                   {"value": str(value).lower()})
 
     @ property
     def description(self) -> str:

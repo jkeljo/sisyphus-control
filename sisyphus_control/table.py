@@ -70,8 +70,7 @@ class Table:
             ip,
             callback=table._try_update_table_state,
             session=session)
-        connect_result = await table._transport.post("connect")
-        await table._try_update_table_state(connect_result)
+        await table._transport.post("connect")
 
         _LOGGER.debug("Connected to %s (%s)", table.name, ip)
         return table
@@ -144,13 +143,11 @@ incomplete) list of possible values:
 
     async def pause(self) -> None:
         if self.state != 'paused':
-            await self._try_update_table_state(
-                await self._get_transport().post("pause"))
+            await self._get_transport().post("pause")
 
     async def play(self) -> None:
         if self.state != 'playing':
-            await self._try_update_table_state(
-                await self._get_transport().post("play"))
+            await self._get_transport().post("play")
 
     @property
     def is_sleeping(self) -> bool:
@@ -158,13 +155,11 @@ incomplete) list of possible values:
 
     async def sleep(self) -> None:
         if not self.is_sleeping:
-            await self._try_update_table_state(
-                await self._get_transport().post("sleep_sisbot"))
+            await self._get_transport().post("sleep_sisbot")
 
     async def wakeup(self) -> None:
         if self.is_sleeping:
-            await self._try_update_table_state(
-                await self._get_transport().post("wake_sisbot"))
+            await self._get_transport().post("wake_sisbot")
 
     @property
     def playlists(self) -> List[Playlist]:
@@ -221,11 +216,9 @@ incomplete) list of possible values:
     async def set_brightness(self, level: float) -> None:
         if not 0 <= level <= 1.0:
             raise ValueError("Brightness must be between 0 and 1 inclusive")
-        result = await self._get_transport().post(
+        await self._get_transport().post(
             "set_brightness",
             {"value": level})
-        if not await self._try_update_table_state(result):
-            self._data["brightness"] = result
 
     @property
     def speed(self) -> float:
@@ -234,11 +227,9 @@ incomplete) list of possible values:
     async def set_speed(self, speed: float) -> None:
         if not 0 <= speed <= 1.0:
             raise ValueError("Speed must be between 0 and 1 inclusive")
-        result = await self._get_transport().post(
+        await self._get_transport().post(
             "set_speed",
             {"value": speed})
-        if not await self._try_update_table_state(result):
-            self._data["speed"] = result
 
     @property
     def is_shuffle(self) -> bool:
@@ -256,11 +247,9 @@ incomplete) list of possible values:
         return parse_bool(self._data["is_loop"])
 
     async def set_loop(self, value: bool) -> None:
-        result = await self._get_transport().post(
+        await self._get_transport().post(
             "set_loop",
             {"value": str(value).lower()})
-        if not await self._try_update_table_state(result):
-            self._data["is_loop"] = result
 
     @property
     def active_track_total_time(self) -> timedelta:
@@ -275,8 +264,8 @@ incomplete) list of possible values:
         return self._remaining_time_as_of
 
     async def refresh(self) -> None:
-        await self._try_update_table_state(await self._get_transport().post("state"))
-        await self._try_update_table_state(await self._get_transport().post("get_track_time"))
+        await self._get_transport().post("state")
+        await self._get_transport().post("get_track_time")
 
     async def wait_for(self, pred: Callable[[], bool]) -> None:
         while True:

@@ -43,13 +43,15 @@ class TableTransport:
             self,
             endpoint: str,
             data: Dict[str, Any] = None,
-            timeout: float = 5) -> List[Dict[str, Any]]:
-        return await post(
+            timeout: float = 5) -> None:
+        response = await post(
             self._ip,
             endpoint,
             data,
             timeout,
             session=self._session)
+        if self._callback:
+            await self._callback(response)
 
     async def _run_socket(self) -> None:
         sio = socketio.AsyncClient()

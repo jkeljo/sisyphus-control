@@ -55,7 +55,8 @@ This track's index in the owning playlist when the playlist is not shuffled"""
             await self._transport.post("set_track", self._data.data)
             await self.parent.play()
         else:
-            await self.parent.play(self)
+            # Ignore type error; if it's in a playlist the parent is the playlist, and that play() method takes a track
+            await self.parent.play(self)  # type: ignore
 
     def get_thumbnail_url(self, size: int) -> str:
         return "http://{host}:3001/thumbnail/{size}/{id}".format(
