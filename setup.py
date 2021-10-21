@@ -21,7 +21,7 @@ setup(
         "Intended Audience :: Developers",
         "Topic :: Home Automation",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.9",
     ],
     keywords="sisyphus",
     packages=["sisyphus_control"],
@@ -33,5 +33,5 @@ setup(
         "netifaces",
         "python-socketio",
     ],
-    python_requires=">=3.7.1",
+    python_requires=">=3.9",
 )
