@@ -4,6 +4,18 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[3.1] - 2021-10-21
+==================
+Added
+-----
+* Python types for the entire API
+* `Table.firmware_version` and `Table.mac_address`
+Fixed
+-------
+* `find_table_ips` returns an empty list rather than `None` if none are found
+* An error result returned from a POST request is now properly included in the Exception
+* Locked dependency versions of `python-socketio` and `python-engineio` to those that support the SocketIO protocol version used by Sisyphus
+
 [3.0] - 2020-09-06
 ==================
 Added
