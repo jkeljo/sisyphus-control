@@ -6,16 +6,16 @@ import asyncio
 import json
 import socketio
 
-TransportCallback = Callable[[
-    Optional[List[Dict[str, Any]]]], Awaitable[None]]
+TransportCallback = Callable[[Optional[List[Dict[str, Any]]]], Awaitable[None]]
 
 
 class TableTransport:
     def __init__(
-            self,
-            ip: str,
-            callback: Optional[TransportCallback] = None,
-            session: Optional[aiohttp.ClientSession] = None):
+        self,
+        ip: str,
+        callback: Optional[TransportCallback] = None,
+        session: Optional[aiohttp.ClientSession] = None,
+    ):
         self._session = session
         self._ip = ip
         self._callback = callback
@@ -23,10 +23,15 @@ class TableTransport:
         self._event_loop = asyncio.get_event_loop()
         self._socket_closed = self._event_loop.create_task(self._run_socket())
 
-    async def __aenter__(self) -> 'TableTransport':
+    async def __aenter__(self) -> "TableTransport":
         return self
 
-    async def __aexit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> bool:
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> bool:
         await self.close()
         return False
 
@@ -40,16 +45,9 @@ class TableTransport:
             await self._socket_closed
 
     async def post(
-            self,
-            endpoint: str,
-            data: Dict[str, Any] = None,
-            timeout: float = 5) -> None:
-        response = await post(
-            self._ip,
-            endpoint,
-            data,
-            timeout,
-            session=self._session)
+        self, endpoint: str, data: Dict[str, Any] = None, timeout: float = 5
+    ) -> None:
+        response = await post(self._ip, endpoint, data, timeout, session=self._session)
         if self._callback:
             await self._callback(response)
 
@@ -76,11 +74,12 @@ class TableTransport:
 
 
 async def post(
-        ip: str,
-        endpoint: str,
-        data: Dict[str, Any] = None,
-        timeout: float = 5,
-        session: Optional[aiohttp.ClientSession] = None) -> List[Dict[str, Any]]:
+    ip: str,
+    endpoint: str,
+    data: Dict[str, Any] = None,
+    timeout: float = 5,
+    session: Optional[aiohttp.ClientSession] = None,
+) -> List[Dict[str, Any]]:
 
     if not session:
         async with aiohttp.ClientSession() as session:
@@ -88,8 +87,7 @@ async def post(
 
     data = data or {}
     try:
-        url = "http://{ip}/sisbot/{endpoint}".format(ip=ip,
-                                                     endpoint=endpoint)
+        url = "http://{ip}/sisbot/{endpoint}".format(ip=ip, endpoint=endpoint)
 
         json_data = {
             "data": data,
@@ -98,12 +96,11 @@ async def post(
         form_data = {"data": json.dumps(json_data)}
 
         async with session.post(
-                url,
-                data=form_data,
-                timeout=aiohttp.ClientTimeout(sock_connect=timeout)) as r:  # type: ignore
+            url, data=form_data, timeout=aiohttp.ClientTimeout(sock_connect=timeout)
+        ) as r:  # type: ignore
             r = await r.json()
             if r["err"]:
-                raise Exception(r["error"])
+                raise Exception(r["err"])
 
             return r["resp"]
     except:
