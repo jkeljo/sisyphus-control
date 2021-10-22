@@ -4,6 +4,12 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[3.1.1] - 2021-10-21
+====================
+Changed
+-------
+* Re-enabled support for Python 3.8 (Home Assistant won't remove that until next year)
+
 [3.1] - 2021-10-21
 ==================
 Added

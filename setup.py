@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name="sisyphus-control",
-    version="3.1",
+    version="3.1.1",
     description="Control your Sisyphus kinetic art tables "
                 "(sisyphus-industries.com)",
     long_description=long_description,
@@ -21,7 +21,7 @@ setup(
         "Intended Audience :: Developers",
         "Topic :: Home Automation",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.8",
     ],
     keywords="sisyphus",
     packages=["sisyphus_control"],
@@ -34,5 +34,5 @@ setup(
         "python-socketio==4.6.1",
         "python-engineio==3.14.2"
     ],
-    python_requires=">=3.9",
+    python_requires=">=3.8",
 )
