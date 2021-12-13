@@ -4,6 +4,12 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[3.1.2] - 2021-12-13
+====================
+Changed
+-------
+* Relax version requirements for socketio/engineio
+
 [3.1.1] - 2021-10-21
 ====================
 Changed

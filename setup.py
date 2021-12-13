@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name="sisyphus-control",
-    version="3.1.1",
+    version="3.1.2",
     description="Control your Sisyphus kinetic art tables "
                 "(sisyphus-industries.com)",
     long_description=long_description,
@@ -31,8 +31,8 @@ setup(
     install_requires=[
         "aiohttp",
         "netifaces",
-        "python-socketio==4.6.1",
-        "python-engineio==3.14.2"
+        "python-socketio>=4.0,<5.0",
+        "python-engineio>=3.0,<4.0"
     ],
     python_requires=">=3.8",
 )
