@@ -2,6 +2,8 @@ import asyncio
 from collections import UserDict
 from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, List, Union
 
+from .util import ensure_coroutine
+
 CollectionListener = Union[Callable[[], None], Callable[[], Awaitable[None]]]
 
 
@@ -54,7 +56,7 @@ class Collection(CollectionBase):
     async def _notify_listeners(self) -> None:
         listeners = list(self._listeners)
         for listener in listeners:
-            await asyncio.coroutine(listener)()  # type: ignore
+            await ensure_coroutine(listener)()  # type: ignore
 
 
 if __name__ == "__main__":

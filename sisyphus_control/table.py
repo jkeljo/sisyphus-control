@@ -13,6 +13,7 @@ from .playlist import Playlist
 from .sisbot_json import parse_bool
 from .track import Track
 from .transport import TableTransport, post
+from .util import ensure_coroutine
 
 
 _LOGGER = logging.getLogger("sisyphus-control")
@@ -283,7 +284,7 @@ incomplete) list of possible values:
     async def _notify_listeners(self) -> None:
         listeners = list(self._listeners)
         for listener in listeners:
-            await asyncio.coroutine(listener)()  # type: ignore
+            await ensure_coroutine(listener)()  # type: ignore
         self._updated.set()
 
     def _get_transport(self) -> TableTransport:
