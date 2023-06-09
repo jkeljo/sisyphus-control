@@ -4,6 +4,15 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[3.1.3] - 2023-06-08
+====================
+Fixed
+-----
+* Removed usages of `asyncio.coroutine` so that the library can run on Python 3.11
+Changed
+-------
+* Updated all dependency versions in `requirements.txt`
+
 [3.1.2] - 2021-12-13
 ====================
 Changed
