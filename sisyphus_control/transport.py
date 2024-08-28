@@ -4,7 +4,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Type
 import aiohttp
 import asyncio
 import json
-import socketio
+import socketio_v4 as socketio
 
 TransportCallback = Callable[[Optional[List[Dict[str, Any]]]], Awaitable[None]]
 

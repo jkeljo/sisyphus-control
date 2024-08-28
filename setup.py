@@ -31,8 +31,8 @@ setup(
     install_requires=[
         "aiohttp",
         "netifaces",
-        "python-socketio>=4.0,<5.0",
-        "python-engineio>=3.0,<4.0"
+        "python-socketio-v4",
+        "python-engineio-v3"
     ],
     python_requires=">=3.8",
 )
