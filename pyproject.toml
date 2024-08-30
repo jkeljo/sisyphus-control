@@ -3,7 +3,7 @@ profile = "black"
 
 [tool.poetry]
 name = "sisyphus_control"
-version = "3.1.3"
+version = "3.1.4"
 description = "Control your Sisyphus kinetic art tables (sisyphus-industries.com)"
 homepage = "https://github.com/jkeljo/sisyphus-control"
 repository = "https://github.com/jkeljo/sisyphus-control"

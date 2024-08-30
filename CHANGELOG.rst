@@ -4,6 +4,12 @@ Changelog
 sisyphus-control
 ++++++++++++++++
 
+[3.1.4] - 2024-08-30
+====================
+Changed
+-------
+- Switch to socketio_v4 (#8) (thanks @bdraco!)
+
 [3.1.3] - 2023-06-08
 ====================
 Fixed
