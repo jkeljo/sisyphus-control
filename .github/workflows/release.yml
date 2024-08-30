@@ -1,0 +1,38 @@
+---
+name: Release
+
+on: # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: Install Dependencies
+        run: |
+          pip install poetry
+          poetry install
+          echo "$(poetry env info --path)/bin" >> $GITHUB_PATH
+      - name: Get current version
+        id: get_version
+        run: echo version=$(poetry version -s) >> $GITHUB_OUTPUT
+      - uses: mukunku/tag-exists-action@v1.3.0
+        id: version_exists_check
+        with:
+          tag: v${{steps.get_version.outputs.version}}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: steps.version_exists_check.outputs.exists != 'true'
+        with:
+          generate_release_notes: true
+          draft: true
+          name: ${{steps.get_version.outputs.version}}
+          tag_name: v${{steps.get_version.outputs.version}}
