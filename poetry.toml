@@ -1,0 +1,5 @@
+[repositories.testpypi]
+url = "https://test.pypi.org/legacy/"
+
+[repositories.pypi]
+url = "https://pypi.org/legacy/"
